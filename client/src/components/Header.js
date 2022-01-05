@@ -70,7 +70,7 @@ const Header = () => {
                 onFailure={onSignInFailure}
                 cookiePolicy={'single_host_origin'}
                 isSignedIn={true}
-                uxMode="redirect"
+                // uxMode="redirect"
               />
             )
           }
