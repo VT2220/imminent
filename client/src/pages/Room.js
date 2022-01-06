@@ -8,6 +8,19 @@ import io from 'socket.io-client';
 
 import Controls from '../components/Controls';
 
+const PeerWebcam = (props) => {
+  const { peer } = props;
+  const videoRef = useRef();
+
+  useEffect(() => {
+    peer.on('stream', (stream) => {
+      videoRef.current.srcObject = stream;
+    });
+  }, []);
+
+  return <video ref={videoRef} className="rounded-2xl" muted autoPlay playsInline />;
+};
+
 const Room = () => {
   const { id } = useParams();
 
@@ -30,17 +43,19 @@ const Room = () => {
       // server will fire all user event when joined the room to get info about other users.
       socketRef.current.on('all users', (users) => {
         // creating peers for all the users
-        const peers = [];
         users.forEach((data) => {
-          const peer = createPeer(data, socketRef.current.id, webcamRef.current.stream);
+          const peer = createPeer(
+            data,
+            { socketId: socketRef.current.id, user },
+            webcamRef.current.stream
+          );
           const peerObj = {
             id: data.socketId,
             peer
           };
           peersRef.current.push(peerObj);
-          peers.push(peerObj);
         });
-        setPeers(peers);
+        setPeers([...peersRef.current]);
       });
 
       // when some other user join, to add this user in our room
@@ -50,8 +65,8 @@ const Room = () => {
           id: payload.caller.socketId,
           peer
         };
+        setPeers([...peersRef.current, peerObj]);
         peersRef.current.push(peerObj);
-        setPeers((peers) => [...peers, peerObj]);
       });
 
       socketRef.current.on('receiving returned signal', (payload) => {
@@ -76,7 +91,7 @@ const Room = () => {
     };
   }, []);
 
-  const createPeer = (userToSignal, callerId, stream) => {
+  const createPeer = (userToSignal, caller, stream) => {
     const peer = new Peer({
       initiator: true,
       trickle: false,
@@ -86,7 +101,7 @@ const Room = () => {
     peer.on('signal', (signal) => {
       socketRef.current.emit('sending signal', {
         userToSignal,
-        caller: { socketId: callerId, user },
+        caller,
         signal
       });
     });
@@ -115,7 +130,7 @@ const Room = () => {
       <div style={{ height: 'calc(100vh - 64px - 77px)' }} className="videos px-3">
         <Webcam ref={webcamRef} audio mirrored className="rounded-2xl" muted />
         {peers.map((peer) => (
-          <Webcam key={peer.id} audio mirrored className="rounded-2xl" muted />
+          <PeerWebcam key={peer.id} peer={peer.peer} />
         ))}
       </div>
       <Controls />

@@ -44,7 +44,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('---------------------');
+    console.log('------------');
     console.log('Disconnected');
     const roomId = rooms[socket.id];
     let roomsUser = users[roomId];
