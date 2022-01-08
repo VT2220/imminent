@@ -66,7 +66,7 @@ const JoinRoom = () => {
           </div>
         </div>
         <div className="order-1 md:order-12">
-          <Spring opacity={1}>
+          <Spring from={{ opacity: 0 }} to={{ opacity: 1 }} delay={1500}>
             {(styles) => (
               <animated.div
                 style={styles}

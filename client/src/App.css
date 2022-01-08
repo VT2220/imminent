@@ -11,6 +11,10 @@
   @apply p-2 border-2 rounded-lg cursor-pointer;
 }
 
+.h-inherit {
+  height: inherit;
+}
+
 .loader {
   height: 0;
   width: 0;
@@ -25,11 +29,4 @@
   100% {
     -webkit-transform: rotate(360deg);
   }
-}
-
-.videos {
-  display: grid;
-  place-items: center;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
 }

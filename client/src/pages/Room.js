@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
+import { Transition, animated } from '@react-spring/web';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import Webcam from 'react-webcam';
@@ -8,8 +9,10 @@ import io from 'socket.io-client';
 
 import Controls from '../components/Controls';
 
+const { largestSquare } = require('rect-scaler');
+
 const PeerWebcam = (props) => {
-  const { peer } = props;
+  const { peer, style, width, height } = props;
   const videoRef = useRef();
 
   useEffect(() => {
@@ -18,7 +21,13 @@ const PeerWebcam = (props) => {
     });
   }, []);
 
-  return <video ref={videoRef} className="rounded-2xl" muted autoPlay playsInline />;
+  return (
+    <animated.div
+      style={{ ...style, width, height }}
+      className="flex items-center rounded-2xl bg-black">
+      <video ref={videoRef} width="100%" height="100%" muted autoPlay playsInline />
+    </animated.div>
+  );
 };
 
 const Room = () => {
@@ -125,13 +134,64 @@ const Room = () => {
     return peer;
   };
 
+  // for managing layout for users' video area
+  const containerRef = useRef();
+  const [camWidth, setCamWidth] = useState();
+
+  const calculateLayout = () => {
+    const w = containerRef.current.getBoundingClientRect().width;
+    const h = containerRef.current.getBoundingClientRect().height;
+    const count = peers.length + 1;
+    const { width } = largestSquare(w, h, count);
+
+    setCamWidth(width - 16);
+  };
+
+  useEffect(() => {
+    calculateLayout();
+  }, [peers.length]);
+
+  useEffect(() => {
+    window.onresize = () => {
+      calculateLayout();
+    };
+  });
+
   return (
     <>
-      <div style={{ height: 'calc(100vh - 64px - 77px)' }} className="videos px-3">
-        <Webcam ref={webcamRef} audio mirrored className="rounded-2xl" muted />
-        {peers.map((peer) => (
-          <PeerWebcam key={peer.id} peer={peer.peer} />
-        ))}
+      <div
+        ref={containerRef}
+        className="flex justify-center items-center"
+        style={{ height: 'calc(100vh - 64px - 77px)' }}>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Transition
+            items={true}
+            from={{ opacity: 0 }}
+            enter={{ opacity: 1 }}
+            leave={{ opacity: 0 }}
+            delay={1000}>
+            {(styles, item) =>
+              item && (
+                <animated.div
+                  style={{ ...styles, width: camWidth, height: camWidth }}
+                  className="flex items-center rounded-2xl bg-black">
+                  <Webcam ref={webcamRef} audio mirrored muted width="100%" height="100%" />
+                </animated.div>
+              )
+            }
+          </Transition>
+          <Transition
+            keys={(item) => item.id}
+            items={peers}
+            from={{ opacity: 0 }}
+            enter={{ opacity: 1 }}
+            leave={{ opacity: 0 }}
+            delay={1000}>
+            {(styles, item) => (
+              <PeerWebcam style={styles} peer={item.peer} width={camWidth} height={camWidth} />
+            )}
+          </Transition>
+        </div>
       </div>
       <Controls />
     </>

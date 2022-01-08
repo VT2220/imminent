@@ -2,7 +2,7 @@ import { Transition, animated } from '@react-spring/web';
 import { GoogleLogin, GoogleLogout } from 'react-google-login';
 import toast from 'react-hot-toast';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import Avatar from '../assets/images/avatar.jpg';
 import Logo from '../assets/images/logo.jpg';
@@ -13,6 +13,8 @@ const Header = () => {
   const user = useSelector((state) => state.user.user);
 
   const dispatch = useDispatch();
+
+  const navigate = useNavigate();
 
   const onSignInSuccess = (res) => {
     dispatch(setUserData(res.profileObj));
@@ -44,7 +46,10 @@ const Header = () => {
                     render={(props) => (
                       <span
                         className="text-sky-800 underline hover:decoration-double cursor-pointer"
-                        onClick={props.onClick}>
+                        onClick={() => {
+                          props.onClick();
+                          navigate('/');
+                        }}>
                         logout
                       </span>
                     )}
