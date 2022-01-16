@@ -37,7 +37,7 @@ const Header = ({ isChatOpen, setIsChatOpen }) => {
           className="flex items-center gap-x-2.5 cursor-pointer"
           onClick={() => {
             if (location.pathname !== '/' && !location.pathname.includes('/leave')) {
-              if (confirm('Are you sure you want to redirect to home?')) {
+              if (window.confirm('Are you sure you want to redirect to home?')) {
                 navigate('/');
               }
             } else {
