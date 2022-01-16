@@ -1,51 +1,39 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Spring, animated } from '@react-spring/web';
 import { Video, VideoSlash, Microphone, MicrophoneSlash1 } from 'iconsax-react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
 import Webcam from 'react-webcam';
-import { v4 as uuid } from 'uuid';
 
-import { setVideoState, setAudioState } from '../store/webcam-slice';
+import { setAudioState, setVideoState } from '../store/webcam-slice';
+import useWebcam from '../useWebcam';
 
 const JoinRoom = () => {
-  const [webcamLoading, setWebcamLoading] = useState(true);
-  const [webcamKey, setWebcamKey] = useState(uuid());
+  const webcamRef = useRef();
+  // console.log(webcamRef, webcamRef.current);
+  const {
+    webcamLoading,
+    webcamKey,
+    setWebcamLoading,
+    video,
+    microphone,
+    turnOffMicrophone,
+    turnOnMicrophone,
+    turnOffVideo,
+    turnOnVideo
+  } = useWebcam(webcamRef);
 
-  const video = useSelector((state) => state.webcam.video);
-  const microphone = useSelector((state) => state.webcam.audio);
+  const { id } = useParams();
 
   const dispatch = useDispatch();
 
-  const webcamRef = useRef();
-
-  const turnOffVideo = () => {
-    dispatch(setVideoState(false));
-    const tracks = webcamRef.current.stream.getVideoTracks();
-    tracks.forEach((track) => {
-      track.stop();
-    });
-  };
-
-  const turnOnVideo = () => {
+  useEffect(() => {
     dispatch(setVideoState(true));
-    setWebcamLoading(true);
-    setWebcamKey(uuid());
-    if (!microphone) turnOffMicrophone();
-  };
-
-  const turnOffMicrophone = () => {
-    dispatch(setAudioState(false));
-    webcamRef.current.stream.getAudioTracks()[0].enabled = false;
-  };
-
-  const turnOnMicrophone = () => {
     dispatch(setAudioState(true));
-    webcamRef.current.stream.getAudioTracks()[0].enabled = true;
-  };
+  }, []);
 
-  const { id } = useParams();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -59,9 +47,11 @@ const JoinRoom = () => {
           <div className="mt-3">
             <div className="text-sm sm:text-base">No users in the room</div>
             <div className="mt-3">
-              <Link className="href-btn" to={`/room/${id}`}>
+              <button
+                className="btn-primary"
+                onClick={() => navigate(`/room/${id}`, { replace: true })}>
                 Join now
-              </Link>
+              </button>
             </div>
           </div>
         </div>

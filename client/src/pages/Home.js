@@ -12,12 +12,38 @@ const Home = () => {
 
   const [isSignedIn, setIsSignedIn] = useState(true);
 
-  const startNewMeeting = () => {
+  const createNewRoom = () => {
     if (!Object.keys(user).length) {
       setIsSignedIn(false);
       return;
     }
-    navigate(`/join-room/${uuid()}`);
+    navigate(`/join-room/${uuid()}`, { replace: true });
+  };
+
+  const [error, setError] = useState(false);
+
+  const validUUID = (value) => {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  };
+
+  const joinRoom = (e) => {
+    let url = e.target.value;
+    if (url.includes(window.location.hostname) && url.includes('room')) {
+      if (!url.includes('join-room')) {
+        url = e.target.value.replace(/\/room/g, '/join-room');
+      }
+      window.location.href = url;
+    } else if (validUUID(url)) {
+      navigate(`/join-room/${url}`);
+    } else {
+      setError(true);
+    }
+  };
+
+  const onKeyUp = (e) => {
+    if (e.keyCode === 13) {
+      joinRoom(e);
+    }
   };
 
   return (
@@ -35,17 +61,25 @@ const Home = () => {
               expressive environment.
             </div>
             <div className="flex flex-wrap flex-col sm:flex-row gap-4 align-center mt-2">
-              <button className="btn-primary" onClick={startNewMeeting}>
+              <button className="btn-primary" onClick={createNewRoom}>
                 New meeting
               </button>
-              <input type="text" placeholder="Existing meeting link" className="input" />
-              <button className="kbc-button kbc-button-sm w-16 self-end">↵ Enter</button>
+              <input
+                type="text"
+                placeholder="Existing meeting id"
+                className="input"
+                onKeyUp={onKeyUp}
+              />
+              <button className="kbc-button kbc-button-sm w-16 self-end" onClick={joinRoom}>
+                ↵ Enter
+              </button>
             </div>
             {!isSignedIn && <div className="mt-1 text-red-600">Signin to start a new meeting!</div>}
+            {error && <div className="mt-1 text-red-600">Enter valid url or room-id</div>}
           </div>
         </div>
         <div className="order-1 md:order-12">
-          <img src={Poster} width="100%" className="rounded-2xl" />
+          <img src={Poster} width="100%" className="rounded-2xl" alt="poster" />
         </div>
       </div>
     </>

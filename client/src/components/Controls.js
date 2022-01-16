@@ -1,16 +1,56 @@
-import { Video, Microphone, CallRemove, Screenmirroring } from 'iconsax-react';
+import {
+  Video,
+  VideoSlash,
+  Microphone,
+  MicrophoneSlash1,
+  CallRemove,
+  Screenmirroring
+} from 'iconsax-react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const Controls = () => {
+import useWebcam from '../useWebcam';
+
+const Controls = ({ webcamRef }) => {
+  const { video, microphone, turnOffVideo, turnOnVideo, turnOffMicrophone, turnOnMicrophone } =
+    useWebcam(webcamRef);
+
+  const { id } = useParams();
+  const navigate = useNavigate();
   return (
     <>
       <div className="flex justify-center gap-4 p-4">
         <Screenmirroring size={45} variant="Bulk" className="icon-square" />
-        <div className="icon-square flex items-center gap-2 text-red-500 ">
+        <button
+          className="icon-square flex items-center gap-2 text-red-500"
+          onClick={() => navigate(`/leave/${id}`, { replace: true })}>
           <CallRemove size={25} variant="Bulk" />
           Leave
-        </div>
-        <Video size={45} variant="Bulk" className="icon-square text-sky-600" />
-        <Microphone size={45} variant="Bulk" className="icon-square text-sky-600" />
+        </button>
+        {video ? (
+          <Video
+            size={45}
+            variant="Bulk"
+            className="icon-square text-sky-600"
+            onClick={turnOffVideo}
+          />
+        ) : (
+          <VideoSlash size={45} variant="Bulk" className="icon-square" onClick={turnOnVideo} />
+        )}
+        {microphone ? (
+          <Microphone
+            size={45}
+            variant="Bulk"
+            className="icon-square text-sky-600"
+            onClick={turnOffMicrophone}
+          />
+        ) : (
+          <MicrophoneSlash1
+            size={45}
+            variant="Bulk"
+            className="icon-square"
+            onClick={turnOnMicrophone}
+          />
+        )}
       </div>
     </>
   );

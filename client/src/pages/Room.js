@@ -7,7 +7,9 @@ import Webcam from 'react-webcam';
 import Peer from 'simple-peer';
 import io from 'socket.io-client';
 
+import Chat from '../components/Chat';
 import Controls from '../components/Controls';
+import useWebcam from '../useWebcam';
 
 const { largestSquare } = require('rect-scaler');
 
@@ -30,16 +32,32 @@ const PeerWebcam = (props) => {
   );
 };
 
-const Room = () => {
+const Room = ({ isChatOpen }) => {
   const { id } = useParams();
 
   const user = useSelector((state) => state.user.user);
 
-  const webcamRef = useRef();
   const socketRef = useRef();
 
   const peersRef = useRef([]);
   const [peers, setPeers] = useState([]);
+
+  const webcamRef = useRef();
+  const { video, microphone, turnOffVideo, turnOffMicrophone, webcamKey, setWebcamLoading } =
+    useWebcam(webcamRef);
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (webcamRef.current.stream) {
+        if (!video) {
+          turnOffVideo();
+        }
+        if (!microphone) {
+          turnOffMicrophone();
+        }
+      }
+    }, 100);
+  }, [webcamRef?.current?.stream]);
 
   useEffect(() => {
     if (Object.keys(user).length) {
@@ -159,41 +177,67 @@ const Room = () => {
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className="flex justify-center items-center"
-        style={{ height: 'calc(100vh - 64px - 77px)' }}>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Transition
-            items={true}
-            from={{ opacity: 0 }}
-            enter={{ opacity: 1 }}
-            leave={{ opacity: 0 }}
-            delay={1000}>
-            {(styles, item) =>
-              item && (
-                <animated.div
-                  style={{ ...styles, width: camWidth, height: camWidth }}
-                  className="flex items-center rounded-2xl bg-black">
-                  <Webcam ref={webcamRef} audio mirrored muted width="100%" height="100%" />
-                </animated.div>
-              )
-            }
-          </Transition>
-          <Transition
-            keys={(item) => item.id}
-            items={peers}
-            from={{ opacity: 0 }}
-            enter={{ opacity: 1 }}
-            leave={{ opacity: 0 }}
-            delay={1000}>
-            {(styles, item) => (
-              <PeerWebcam style={styles} peer={item.peer} width={camWidth} height={camWidth} />
-            )}
-          </Transition>
+      <div className="videos-section">
+        <div
+          ref={containerRef}
+          className="flex justify-center items-center"
+          style={{ height: 'calc(100vh - 64px - 77px)' }}>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Transition
+              items={true}
+              from={{ opacity: 0 }}
+              enter={{ opacity: 1 }}
+              leave={{ opacity: 0 }}
+              delay={1000}>
+              {(styles, item) =>
+                item && (
+                  <animated.div
+                    style={{ ...styles, width: camWidth, height: camWidth }}
+                    className="flex items-center rounded-2xl bg-black">
+                    <Webcam
+                      key={webcamKey}
+                      ref={webcamRef}
+                      audio
+                      mirrored
+                      muted
+                      width="100%"
+                      height="100%"
+                      onUserMedia={() => {
+                        setWebcamLoading(false);
+                      }}
+                    />
+                  </animated.div>
+                )
+              }
+            </Transition>
+            <Transition
+              keys={(item) => item.id}
+              items={peers}
+              from={{ opacity: 0 }}
+              enter={{ opacity: 1 }}
+              leave={{ opacity: 0 }}
+              delay={1000}>
+              {(styles, item) => (
+                <PeerWebcam style={styles} peer={item.peer} width={camWidth} height={camWidth} />
+              )}
+            </Transition>
+          </div>
         </div>
+        <Transition
+          items={isChatOpen}
+          from={{ opacity: 0, transform: 'translateX(300px)' }}
+          enter={{ opacity: 1, transform: 'translateX(0px)' }}
+          leave={{ opacity: 0, transform: 'translateX(300px)' }}>
+          {(styles, item) =>
+            item && (
+              <animated.div style={styles}>
+                <Chat />
+              </animated.div>
+            )
+          }
+        </Transition>
       </div>
-      <Controls />
+      <Controls webcamRef={webcamRef} />
     </>
   );
 };

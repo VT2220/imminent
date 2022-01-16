@@ -1,8 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { v4 as uuid } from 'uuid';
 
 const initialState = {
   video: true,
-  audio: true
+  audio: true,
+  webcamKey: uuid()
 };
 
 const webcamSlice = createSlice({
@@ -14,10 +16,13 @@ const webcamSlice = createSlice({
     },
     setAudioState: (state, action) => {
       state.audio = action.payload;
+    },
+    setWebcamKey: (state) => {
+      state.webcamKey = uuid();
     }
   }
 });
 
-export const { setVideoState, setAudioState } = webcamSlice.actions;
+export const { setVideoState, setAudioState, setWebcamKey } = webcamSlice.actions;
 
 export default webcamSlice.reducer;
