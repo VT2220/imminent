@@ -20,13 +20,19 @@ const App = () => {
           toastOptions={{
             className: 'text-sm'
           }}
+          containerStyle={{
+            top: 5
+          }}
         />
       </div>
       <Header isChatOpen={isChatOpen} setIsChatOpen={setIsChatOpen} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/join-room/:id" element={<JoinRoom />} />
-        <Route path="/room/:id" element={<Room isChatOpen={isChatOpen} />} />
+        <Route
+          path="/room/:id"
+          element={<Room isChatOpen={isChatOpen} setIsChatOpen={setIsChatOpen} />}
+        />
         <Route path="/leave/:id" element={<Leave />} />
       </Routes>
     </>

@@ -1,14 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { Transition, animated } from '@react-spring/web';
-import { useSelector } from 'react-redux';
+import toast from 'react-hot-toast';
+import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import Webcam from 'react-webcam';
 import Peer from 'simple-peer';
 import io from 'socket.io-client';
+import { v4 as uuid } from 'uuid';
 
 import Chat from '../components/Chat';
 import Controls from '../components/Controls';
+import MsgNotification from '../components/MsgNotification';
+import { setChat } from '../store/chat-slice';
 import useWebcam from '../useWebcam';
 
 const { largestSquare } = require('rect-scaler');
@@ -27,24 +31,35 @@ const PeerWebcam = (props) => {
     <animated.div
       style={{ ...style, width, height }}
       className="flex items-center rounded-2xl bg-black">
-      <video ref={videoRef} width="100%" height="100%" muted autoPlay playsInline />
+      <video ref={videoRef} width="100%" height="100%" autoPlay playsInline />
     </animated.div>
   );
 };
 
-const Room = ({ isChatOpen }) => {
+const Room = ({ isChatOpen, setIsChatOpen }) => {
   const { id } = useParams();
 
   const user = useSelector((state) => state.user.user);
 
+  const dispatch = useDispatch();
+
   const socketRef = useRef();
+  socketRef.current = useMemo(() => io.connect(), []);
 
   const peersRef = useRef([]);
   const [peers, setPeers] = useState([]);
 
   const webcamRef = useRef();
-  const { video, microphone, turnOffVideo, turnOffMicrophone, webcamKey, setWebcamLoading } =
-    useWebcam(webcamRef);
+  const {
+    video,
+    microphone,
+    turnOnVideo,
+    turnOffVideo,
+    turnOnMicrophone,
+    turnOffMicrophone,
+    webcamKey,
+    setWebcamLoading
+  } = useWebcam(webcamRef);
 
   useEffect(() => {
     setTimeout(() => {
@@ -61,7 +76,6 @@ const Room = ({ isChatOpen }) => {
 
   useEffect(() => {
     if (Object.keys(user).length) {
-      socketRef.current = io.connect();
       // emitting event to tell user has joined the room.
       socketRef.current.emit('joined room', {
         roomId: id,
@@ -77,7 +91,7 @@ const Room = ({ isChatOpen }) => {
             webcamRef.current.stream
           );
           const peerObj = {
-            id: data.socketId,
+            user: data,
             peer
           };
           peersRef.current.push(peerObj);
@@ -89,7 +103,7 @@ const Room = ({ isChatOpen }) => {
       socketRef.current.on('somebody joined', (payload) => {
         const peer = addPeer(payload.signal, payload.caller, webcamRef.current.stream);
         const peerObj = {
-          id: payload.caller.socketId,
+          user: payload.caller,
           peer
         };
         setPeers([...peersRef.current, peerObj]);
@@ -97,14 +111,14 @@ const Room = ({ isChatOpen }) => {
       });
 
       socketRef.current.on('receiving returned signal', (payload) => {
-        const peer = peersRef.current.find((peer) => peer.id === payload.id);
+        const peer = peersRef.current.find((peer) => peer.user.socketId === payload.id);
         peer.peer.signal(payload.signal);
       });
 
       socketRef.current.on('somebody left', (id) => {
-        const peer = peersRef.current.find((peer) => peer.id === id);
+        const peer = peersRef.current.find((peer) => peer.user.socketId === id);
         if (peer) peer.peer.destroy();
-        peersRef.current = peersRef.current.filter((peer) => peer.id !== id);
+        peersRef.current = peersRef.current.filter((peer) => peer.user.socketId !== id);
         setTimeout(() => {
           setPeers([...peersRef.current]);
         }, 0);
@@ -115,6 +129,7 @@ const Room = ({ isChatOpen }) => {
   useEffect(() => {
     return () => {
       socketRef.current.disconnect();
+      setIsChatOpen(false);
     };
   }, []);
 
@@ -167,13 +182,66 @@ const Room = ({ isChatOpen }) => {
 
   useEffect(() => {
     calculateLayout();
-  }, [peers.length]);
+  }, [peers.length, isChatOpen]);
 
   useEffect(() => {
     window.onresize = () => {
       calculateLayout();
     };
   });
+
+  // chat functionality
+  const [message, setMessage] = useState('');
+
+  const sendMessage = () => {
+    const msg = {
+      user: { ...user, socketId: socketRef.current.id },
+      message,
+      messageId: uuid()
+    };
+    dispatch(setChat({ msg, roomId: id }));
+    setMessage('');
+    socketRef.current.emit('send message', msg);
+  };
+
+  useEffect(() => {
+    socketRef.current.on('somebody sent message', (msg) => {
+      dispatch(setChat({ msg, roomId: id }));
+      if (!isChatOpen) {
+        //FIXME: because of state is inside an socket event it doesn't get updated.
+        toast.custom((t) => (
+          <MsgNotification t={t} img={msg.user.imageUrl} name={msg.user.name} msg={msg.message} />
+        ));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.code === 'KeyV') {
+        if (video) {
+          turnOffVideo();
+        } else {
+          turnOnVideo();
+        }
+      }
+      if (e.code === 'KeyM') {
+        if (microphone) {
+          turnOffMicrophone();
+        } else {
+          turnOnMicrophone();
+        }
+      }
+      if (e.code === 'KeyC') {
+        setIsChatOpen(!isChatOpen);
+      }
+    };
+    window.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [video, microphone, isChatOpen]);
 
   return (
     <>
@@ -211,7 +279,7 @@ const Room = ({ isChatOpen }) => {
               }
             </Transition>
             <Transition
-              keys={(item) => item.id}
+              keys={(item) => item.user.socketId}
               items={peers}
               from={{ opacity: 0 }}
               enter={{ opacity: 1 }}
@@ -231,7 +299,13 @@ const Room = ({ isChatOpen }) => {
           {(styles, item) =>
             item && (
               <animated.div style={styles}>
-                <Chat />
+                <Chat
+                  socketId={socketRef.current.id}
+                  peers={peers}
+                  message={message}
+                  setMessage={setMessage}
+                  sendMessage={sendMessage}
+                />
               </animated.div>
             )
           }

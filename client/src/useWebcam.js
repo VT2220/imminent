@@ -15,10 +15,13 @@ const useWebcam = (webcamRef) => {
 
   const turnOffVideo = () => {
     dispatch(setVideoState(false));
-    const tracks = webcamRef.current.stream.getVideoTracks();
-    tracks.forEach((track) => {
-      track.stop();
-    });
+    webcamRef.current.stream.getVideoTracks()[0].enabled = false;
+    setTimeout(() => {
+      const tracks = webcamRef.current.stream.getVideoTracks();
+      tracks.forEach((track) => {
+        track.stop();
+      });
+    }, 1000);
   };
 
   const turnOnVideo = () => {

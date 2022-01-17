@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { Spring, animated } from '@react-spring/web';
 import { Video, VideoSlash, Microphone, MicrophoneSlash1 } from 'iconsax-react';
@@ -35,6 +35,43 @@ const JoinRoom = () => {
 
   const navigate = useNavigate();
 
+  const tips = [
+    <>
+      You can press <kbd className="kbc-button no-container">V</kbd> to toggle video and{' '}
+      <kbd className="kbc-button no-container">M</kbd> to toggle microphone
+    </>,
+    'You can enter both id and meeting url in the input field which is given on home page to join the room',
+    <>
+      Press <kbd className="kbc-button no-container">C</kbd> to toggle the chat section inside room
+    </>
+  ];
+
+  const tipIndex = useMemo(() => Math.floor(Math.random() * tips.length), []);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.code === 'KeyV') {
+        if (video) {
+          turnOffVideo();
+        } else {
+          turnOnVideo();
+        }
+      }
+      if (e.code === 'KeyM') {
+        if (microphone) {
+          turnOffMicrophone();
+        } else {
+          turnOnMicrophone();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [video, microphone]);
+
   return (
     <>
       <div
@@ -44,15 +81,20 @@ const JoinRoom = () => {
           <div className="text-2xl sm:text-4xl xl:text-5xl font-bold sm:font-medium">
             Ready to join ?
           </div>
-          <div className="mt-3">
+          <div className="mt-2">
             <div className="text-sm sm:text-base">No users in the room</div>
-            <div className="mt-3">
+            <div className="mt-2">
               <button
                 className="btn-primary"
                 onClick={() => navigate(`/room/${id}`, { replace: true })}>
                 Join now
               </button>
             </div>
+          </div>
+          <div className="rounded-lg border-2 border-dark p-3 mt-12 max-w-sm">
+            <p>
+              <strong>Tip: </strong> {tips[tipIndex]}
+            </p>
           </div>
         </div>
         <div className="order-1 md:order-12">

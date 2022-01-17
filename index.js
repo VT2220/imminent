@@ -58,6 +58,10 @@ io.on('connection', (socket) => {
     delete rooms[socket.id];
     socket.broadcast.emit('somebody left', socket.id);
   });
+
+  socket.on('send message', (msg) => {
+    socket.broadcast.emit('somebody sent message', msg);
+  });
 });
 
 if (process.env.NODE_ENV === 'production') {
