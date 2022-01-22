@@ -298,7 +298,7 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
           leave={{ opacity: 0, transform: 'translateX(300px)' }}>
           {(styles, item) =>
             item && (
-              <animated.div style={styles}>
+              <animated.div style={styles} className="absolute left-0 px-2 md:px-0 md:relative">
                 <Chat
                   socketId={socketRef.current.id}
                   peers={peers}
