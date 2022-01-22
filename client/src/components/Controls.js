@@ -10,7 +10,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import useWebcam from '../useWebcam';
 
-const Controls = ({ webcamRef }) => {
+const Controls = ({ webcamRef, peersRef }) => {
   const { video, microphone, turnOffVideo, turnOnVideo, turnOffMicrophone, turnOnMicrophone } =
     useWebcam(webcamRef);
 
@@ -31,7 +31,7 @@ const Controls = ({ webcamRef }) => {
             size={45}
             variant="Bulk"
             className="icon-square text-sky-600"
-            onClick={turnOffVideo}
+            onClick={() => turnOffVideo(peersRef)}
           />
         ) : (
           <VideoSlash size={45} variant="Bulk" className="icon-square" onClick={turnOnVideo} />

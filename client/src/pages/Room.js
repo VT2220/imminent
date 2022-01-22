@@ -61,6 +61,8 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
     setWebcamLoading
   } = useWebcam(webcamRef);
 
+  const [message, setMessage] = useState('');
+
   useEffect(() => {
     setTimeout(() => {
       if (webcamRef.current.stream) {
@@ -123,6 +125,17 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
           setPeers([...peersRef.current]);
         }, 0);
       });
+
+      // chat related event
+      socketRef.current.on('somebody sent message', (msg) => {
+        dispatch(setChat({ msg, roomId: id }));
+        if (!isChatOpen) {
+          //FIXME: because of state is inside an socket event it doesn't get updated.
+          toast.custom((t) => (
+            <MsgNotification t={t} img={msg.user.imageUrl} name={msg.user.name} msg={msg.message} />
+          ));
+        }
+      });
     }
   }, [user]);
 
@@ -167,6 +180,17 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
     return peer;
   };
 
+  const sendMessage = () => {
+    const msg = {
+      user: { ...user, socketId: socketRef.current.id },
+      message,
+      messageId: uuid()
+    };
+    dispatch(setChat({ msg, roomId: id }));
+    setMessage('');
+    socketRef.current.emit('send message', msg);
+  };
+
   // for managing layout for users' video area
   const containerRef = useRef();
   const [camWidth, setCamWidth] = useState();
@@ -190,39 +214,15 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
     };
   });
 
-  // chat functionality
-  const [message, setMessage] = useState('');
-
-  const sendMessage = () => {
-    const msg = {
-      user: { ...user, socketId: socketRef.current.id },
-      message,
-      messageId: uuid()
-    };
-    dispatch(setChat({ msg, roomId: id }));
-    setMessage('');
-    socketRef.current.emit('send message', msg);
-  };
-
-  useEffect(() => {
-    socketRef.current.on('somebody sent message', (msg) => {
-      dispatch(setChat({ msg, roomId: id }));
-      if (!isChatOpen) {
-        //FIXME: because of state is inside an socket event it doesn't get updated.
-        toast.custom((t) => (
-          <MsgNotification t={t} img={msg.user.imageUrl} name={msg.user.name} msg={msg.message} />
-        ));
-      }
-    });
-  }, []);
-
+  // for keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.code === 'KeyV') {
         if (video) {
           turnOffVideo();
         } else {
-          turnOnVideo();
+          turnOnVideo(peersRef);
+          socketRef.current.emit("replace user's video track");
         }
       }
       if (e.code === 'KeyM') {
@@ -311,7 +311,7 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
           }
         </Transition>
       </div>
-      <Controls webcamRef={webcamRef} />
+      <Controls webcamRef={webcamRef} peersRef={peersRef} />
     </>
   );
 };
