@@ -268,8 +268,7 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
                       audio
                       mirrored
                       muted
-                      width="100%"
-                      height="100%"
+                      style={{ width: '100%', height: 'inherit' }}
                       onUserMedia={() => {
                         setWebcamLoading(false);
                       }}
