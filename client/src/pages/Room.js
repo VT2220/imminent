@@ -232,22 +232,24 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
   // for keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e) => {
-      if (e.code === 'KeyV') {
-        if (video) {
-          turnOffVideo();
-        } else {
-          turnOnVideo(peersRef);
+      if (document.activeElement !== document.querySelector('#msgInput')) {
+        if (e.code === 'KeyV') {
+          if (video) {
+            turnOffVideo();
+          } else {
+            turnOnVideo(peersRef);
+          }
         }
-      }
-      if (e.code === 'KeyM') {
-        if (microphone) {
-          turnOffMicrophone();
-        } else {
-          turnOnMicrophone();
+        if (e.code === 'KeyM') {
+          if (microphone) {
+            turnOffMicrophone();
+          } else {
+            turnOnMicrophone();
+          }
         }
-      }
-      if (e.code === 'KeyC') {
-        setIsChatOpen(!isChatOpen);
+        if (e.code === 'KeyC') {
+          setIsChatOpen(!isChatOpen);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyPress);

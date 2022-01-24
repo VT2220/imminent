@@ -44,6 +44,7 @@ const Chat = ({ socketId, peers, message, setMessage, sendMessage }) => {
             {/* MSG INPUT FIELD AND SEND BTN  */}
             <div className="flex items-center gap-2">
               <input
+                id="msgInput"
                 type="text"
                 className="rounded-lg p-3 py-1 w-full text-sm"
                 value={message}
