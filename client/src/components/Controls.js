@@ -31,10 +31,15 @@ const Controls = ({ webcamRef, peersRef }) => {
             size={45}
             variant="Bulk"
             className="icon-square text-sky-600"
-            onClick={() => turnOffVideo(peersRef)}
+            onClick={turnOffVideo}
           />
         ) : (
-          <VideoSlash size={45} variant="Bulk" className="icon-square" onClick={turnOnVideo} />
+          <VideoSlash
+            size={45}
+            variant="Bulk"
+            className="icon-square"
+            onClick={() => turnOnVideo(peersRef)}
+          />
         )}
         {microphone ? (
           <Microphone
