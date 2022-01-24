@@ -1,0 +1,37 @@
+.btn-border {
+  @apply px-3 py-2 border-2 border-black font-semibold rounded-lg;
+}
+.btn-primary {
+  @apply px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white font-semibold rounded-lg;
+}
+.href-btn {
+  @apply px-3 py-2.5 bg-sky-700 hover:bg-sky-800 text-white font-semibold rounded-lg leading-7;
+}
+.input {
+  @apply px-3 py-1.5 border-2 border-slate-500 rounded-lg font-semibold;
+}
+.icon-square {
+  @apply p-2 border-2 rounded-lg cursor-pointer;
+}
+.h-inherit {
+  height: inherit;
+}
+.loader {
+  height: 0;
+  width: 0;
+  padding: 15px;
+  border: 6px solid #ccc;
+  border-right-color: #888;
+  border-radius: 22px;
+  animation: rotate 1s infinite linear;
+}
+@keyframes rotate {
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+.videos-section {
+  display: grid;
+  padding: 0 1rem;
+  grid-template-columns: 1fr auto;
+}
