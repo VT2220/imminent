@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Transition, animated } from '@react-spring/web';
 import toast from 'react-hot-toast';
 import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
 import Peer from 'simple-peer';
 import io from 'socket.io-client';
@@ -38,6 +38,7 @@ const PeerWebcam = (props) => {
 
 const Room = ({ isChatOpen, setIsChatOpen }) => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const user = useSelector((state) => state.user.user);
 
@@ -62,6 +63,22 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
   } = useWebcam(webcamRef);
 
   const [message, setMessage] = useState('');
+
+  const userLeftFromRoom = () => {
+    localStorage.removeItem('routing');
+  };
+
+  useEffect(() => {
+    const isProperRouting = localStorage.getItem('routing');
+    if (!isProperRouting) {
+      navigate(`/join-room/${id}`, { replace: true });
+    }
+    window.addEventListener('beforeunload', userLeftFromRoom);
+    return () => {
+      userLeftFromRoom();
+      window.removeEventListener('beforeunload', userLeftFromRoom);
+    };
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {

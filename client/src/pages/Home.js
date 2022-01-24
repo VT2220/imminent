@@ -79,7 +79,7 @@ const Home = () => {
           </div>
         </div>
         <div className="order-1 md:order-12">
-          <img src={Poster} width="100%" className="rounded-2xl" alt="poster" />
+          <img src={Poster} width="100%" className="rounded-2xl ml-2.5 sm:ml-0" alt="poster" />
         </div>
       </div>
     </>

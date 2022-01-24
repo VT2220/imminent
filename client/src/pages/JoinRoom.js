@@ -31,6 +31,8 @@ const JoinRoom = () => {
   useEffect(() => {
     dispatch(setVideoState(true));
     dispatch(setAudioState(true));
+
+    localStorage.setItem('routing', true);
   }, []);
 
   const navigate = useNavigate();
