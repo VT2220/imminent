@@ -21,7 +21,7 @@ const App = () => {
             className: 'text-sm'
           }}
           containerStyle={{
-            top: 5
+            top: 10
           }}
         />
       </div>

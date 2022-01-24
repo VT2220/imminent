@@ -25,18 +25,18 @@ const useWebcam = (webcamRef) => {
   };
 
   const turnOnVideo = (peersRef) => {
-    dispatch(setVideoState(true));
     setWebcamLoading(true);
     dispatch(setWebcamKey());
-    if (peersRef) {
-      setTimeout(() => {
+    dispatch(setVideoState(true));
+    setTimeout(() => {
+      if (peersRef) {
         const track = webcamRef.current.stream.getVideoTracks()[0];
         peersRef.current.forEach((peer) => {
           peer.peer._pc.getSenders()[1].replaceTrack(track);
         });
-      }, 1000);
-    }
-    if (!microphone) turnOffMicrophone();
+      }
+      if (!microphone) turnOffMicrophone();
+    }, 1500);
   };
 
   const turnOffMicrophone = () => {

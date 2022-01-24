@@ -81,17 +81,15 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
   }, []);
 
   useEffect(() => {
-    setTimeout(() => {
-      if (webcamRef.current.stream) {
-        if (!video) {
-          turnOffVideo();
-        }
-        if (!microphone) {
-          turnOffMicrophone();
-        }
+    if (webcamRef.current.state.hasUserMedia) {
+      if (!video) {
+        turnOffVideo();
       }
-    }, 100);
-  }, [webcamRef?.current?.stream]);
+      if (!microphone) {
+        turnOffMicrophone();
+      }
+    }
+  }, [webcamRef?.current?.state?.hasUserMedia]);
 
   useEffect(() => {
     if (Object.keys(user).length) {
@@ -239,7 +237,6 @@ const Room = ({ isChatOpen, setIsChatOpen }) => {
           turnOffVideo();
         } else {
           turnOnVideo(peersRef);
-          socketRef.current.emit("replace user's video track");
         }
       }
       if (e.code === 'KeyM') {
