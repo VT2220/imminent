@@ -31,7 +31,7 @@ const PeerWebcam = (props) => {
     <animated.div
       style={{ ...style, width, height }}
       className="flex items-center rounded-2xl bg-black">
-      <video ref={videoRef} width="100%" height="100%" autoPlay playsInline />
+      <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: 'inherit' }} />
     </animated.div>
   );
 };
